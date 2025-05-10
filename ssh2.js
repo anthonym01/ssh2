@@ -7,45 +7,21 @@ const path = require('path');
 const { promisify } = require('util');
 const shell = require('shelljs');
 
+const { spawn } = require('child_process');
 
-input.text('Enter the SSH command: ', { default: 'ssh samuel@samuelm.us.to' }).then(commandToRun => {
-    console.log(`You entered: ${commandToRun}`);
-    // Here you can add the logic to execute the SSH command
-    // For example, using child_process.exec or a similar method
+const scriptPath = '/home/samuel/Code_bin/ssh2/ssh2.sh'; // Replace with the actual path to your script
 
-    // Command to run after Node.js exits
+const child = spawn(scriptPath, [], {  stdio: 'inherit',});
 
-    // Function to execute the terminal command
-    function runCommand(command) {
-        shell.exec(command, { async: true }, (code, stdout, stderr) => {
-            if (code !== 0) {
-                console.error(`Error executing command: ${stderr}`);
-            } else {
-                console.log(`Command output: ${stdout}`);
-            }
-        });
-    }
-
-    // Gracefully exit the Node.js process
-    function gracefulExit() {
-        console.log('Node.js process is exiting...');
-        // Perform any necessary cleanup here (e.g., closing database connections)
-        process.exit(0); // Exit with a success code
-    }
-
-    // Call gracefulExit after a certain condition or event
-    // For example, after a timeout:
-
-    runCommand(commandToRun);
-    //gracefulExit();
-
-
-    // Or perhaps in response to a specific event:
-    // process.on('SIGINT', () => { // Handle Ctrl+C
-    //   gracefulExit();
-    //   runCommand(commandToRun);
-    // });
-
-}).catch(err => {
-    console.error('Error:', err);
+child.on('close', (code) => {
+    console.log(`Bash script finished with code ${code}`);
+  // You can perform actions after the script finishes here
 });
+
+child.on('error', (err) => {
+    console.error(`Failed to start script: ${err}`);
+});
+
+//input.text('Enter the SSH command: ', { default: 'ssh samuel@samuelm.us.to' }).then(commandToRun => {
+//    console.log(`You entered: ${commandToRun}`);
+//});
