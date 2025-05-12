@@ -1,1 +1,1 @@
-{"utilserver":{"host":"samuelm.us.to","user":"samuel","port":"22","arguments":""},"dell proxmox":{"host":"192.168.0.99","user":"root","port":"22","arguments":"-J samuel@samuelm.us.to"}}
+{"hosts":{"dell proxmox":"root@192.168.0.99 -J samuel@samuelm.us.to"},"last_used":-1}

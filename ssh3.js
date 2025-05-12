@@ -31,7 +31,6 @@ let config = {
             this.data = JSON.parse(fs.readFileSync('./config.json', 'utf8'));
         } catch (err) {
             console.error('Error reading config file:', err);
-            this.data = {};
             if (verbose) {
                 console.debug("Creating new config file");
             }
@@ -41,11 +40,6 @@ let config = {
 }
 
 let ssh3 = {
-    test: function () {
-        console.log("test");
-        const args = ['samuel@samuelm.us.to', '-p 22']; // Arguments to the command 
-        this.run(args);
-    },
     help: function () {
         console.log("--------- Help ----------");
         console.log("ssh3 - A simple ssh session manager");
@@ -60,11 +54,11 @@ let ssh3 = {
         config.load();
         while (selection !== 0) {
 
-            console.log("Connect to host");
+            //console.log("Connect to host");
             console.log("--------- Hosts ---------");
             let i = 1;
-            for (const key in config.data) {
-                console.log(`${i}. ${key}\t${config.data[key].host}`);
+            for (const key in config.data.hosts) {
+                console.log(`${i}. ${key}\t${config.data.hosts[key].host}`);
                 i++;
             }
             console.log("---------------------------------")
@@ -78,18 +72,18 @@ let ssh3 = {
                 break;
             }
             if (selection === i) {
-                this.add_new_host();
+                await this.add_new_host();
                 continue;
             }
             if (selection === i + 1) {
-                this.edit_hosts();
+                await this.edit_hosts();
                 continue;
             }
             if (selection > 0 && selection < i) {
-                const key = Object.keys(config.data)[selection - 1];
+                const key = Object.keys(config.data.hosts)[selection - 1];
                 if (verbose) {
                     console.debug("Selected host: ", key);
-                    console.debug(`Connecting to ${config.data[key].host}`);
+                    console.debug(`Connecting to ${config.data.hosts[key].host}`);
                 }
                 this.run(key);
                 break;
@@ -97,36 +91,32 @@ let ssh3 = {
                 console.log("Invalid selection");
             }
         }
-
     },
     add_new_host: async function () {
         console.log("Add new host");
         const name = await input.text("Enter name (e.g. dev server1): ");
-        if (config.data[name]) {
+        if (config.data.hosts[name]) {
             console.log("Host already exists");
             return;
         }
         //impliment dynamic defaults later
         // const host = await input.text("Enter host name: ", { default: //use last used host });
-        const host = await input.text("Enter host name (e.g. 192.168.0.12): ");
-        const user = await input.text("Enter user name: ");
-        const port = await input.text("Enter port #: ", { default: 22 });
-        const arguments = await input.text("Enter arguments (e.g. -i ~/.ssh/id_rsa -g -J user@host:port -l login_name): ");
-        config.data[name] = { host, user, port, arguments };
+        const host = await input.text("Enter host and arguments (e.g. root@192.168.0.99 -i ~/.ssh/id_rsa -g -J user@host:port): ");
+        console.log('ssh command: ssh ',host)
+        config.data.hosts[name] = host;
         config.save();
     },
     edit_hosts: async function () {
         console.log("Edit hosts");
     },
     run: function (key) {//run ssh commands
-        const this_host = config.data[key];
+        const this_host = config.data.hosts[key];
 
         if (verbose) {
-            console.debug("Running ssh command for host: ", this_host.host);
-            console.debug("Arguments: ", this_host.arguments);
+            console.debug("Running ssh command for host: ", this_host);
         }
 
-        const args = [`${this_host.user}@${this_host.host}`, `-p ${this_host.port}`, ...this_host.arguments.split(" ")];
+        const args = [...this_host.split(" ")];
 
         if (verbose) { console.debug("ssh command: ", args); }
 
