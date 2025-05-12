@@ -58,7 +58,9 @@ let ssh3 = {
             console.log("--------- Hosts ---------");
             let i = 1;
             for (const key in config.data.hosts) {
-                console.log(`${i}. ${key}\t${config.data.hosts[key].host}`);
+                //console.log(`${i}. ${key}\t${config.data.hosts[key].host}`);
+                console.log(`${i}. ${key}\t${[...config.data.hosts[key].split("@")][1].split(" ")[0]}`);
+                //[...config.data.hosts[key].host.split("@")][1]
                 i++;
             }
             console.log("---------------------------------")
