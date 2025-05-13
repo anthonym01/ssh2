@@ -5,6 +5,7 @@
 const { spawn } = require('child_process');
 const fs = require('fs');
 const input = require('input');
+const Table = require('easy-table');
 
 let verbose = false;
 // get any arguments passed to the script
@@ -55,18 +56,23 @@ let ssh3 = {
         while (selection !== 0) {
 
             //console.log("Connect to host");
-            console.log("--------- Hosts ---------");
+            console.log("--------- Hosts ---------\n");
             let i = 1;
+            let table = new Table();
             for (const key in config.data.hosts) {
                 //console.log(`${i}. ${key}\t${config.data.hosts[key].host}`);
-                console.log(`${i}. ${key}\t${[...config.data.hosts[key].split("@")][1].split(" ")[0]}`);
+                //console.log(`${i}. ${key}\t${[...config.data.hosts[key].split("@")][1].split(" ")[0]}`);
                 //[...config.data.hosts[key].host.split("@")][1]
+                table.cell('#', i);
+                table.cell('Name', key);
+                table.cell('Host', [...config.data.hosts[key].split("@")][1].split(" ")[0]);
+                table.newRow();
                 i++;
             }
+            console.log(table.toString());
             console.log("---------------------------------")
             console.log(`${i}. add a new host`);
             console.log(`${i + 1}. edit a host`);
-            console.log(`${i + 2}. upload rsa key to a host`);
             console.log("0. Exit");
             selection = parseInt(await input.text("Enter your choice: ", { default: 1 }));
             if (selection === 0) {
@@ -104,7 +110,7 @@ let ssh3 = {
         //impliment dynamic defaults later
         // const host = await input.text("Enter host name: ", { default: //use last used host });
         const host = await input.text("Enter host and arguments (e.g. root@192.168.0.99 -i ~/.ssh/id_rsa -g -J user@host:port): ");
-        console.log('ssh command: ssh ',host)
+        console.log('ssh command: ssh ', host)
         config.data.hosts[name] = host;
         config.save();
     },

@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/anthonym01/ssh2#readme",
   "dependencies": {
+    "easy-table": "^1.2.0",
     "input": "^1.0.1"
   }
 }
