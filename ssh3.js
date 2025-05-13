@@ -16,7 +16,7 @@ const args = process.argv.slice(2);
 let config = {
     data: {
         hosts: {},
-        last_used: -1,
+        last_used: 1,
     },
     save: function () {
         if (verbose) {
@@ -54,40 +54,34 @@ let ssh3 = {
         let selection = -1;
         config.load();
         while (selection !== 0) {
-
-            //console.log("Connect to host");
-            console.log("--------- Hosts ---------\n");
             let i = 1;
-            let table = new Table();
-            for (const key in config.data.hosts) {
-                //console.log(`${i}. ${key}\t${config.data.hosts[key].host}`);
-                //console.log(`${i}. ${key}\t${[...config.data.hosts[key].split("@")][1].split(" ")[0]}`);
-                //[...config.data.hosts[key].host.split("@")][1]
-                table.cell('#', i);
-                table.cell('Name', key);
-                table.cell('Host', [...config.data.hosts[key].split("@")][1].split(" ")[0]);
-                table.newRow();
-                i++;
+
+            if (Object.keys(config.data.hosts).length != 0) {
+                //console.log("Connect to host");
+                //console.log("--------- Hosts ---------\n");
+                let table = new Table();
+                for (const key in config.data.hosts) {
+                    //console.log(`${i}. ${key}\t${config.data.hosts[key].host}`);
+                    //console.log(`${i}. ${key}\t${[...config.data.hosts[key].split("@")][1].split(" ")[0]}`);
+                    //[...config.data.hosts[key].host.split("@")][1]
+                    table.cell('#', i);
+                    table.cell('Name', key);
+                    table.cell('Host', [...config.data.hosts[key].split("@")][1].split(" ")[0]);
+                    table.newRow();
+                    i++;
+                }
+                console.log(table.toString());
+                //console.log("---------------------------------")
             }
-            console.log(table.toString());
-            console.log("---------------------------------")
-            console.log(`${i}. add a new host`);
-            console.log(`${i + 1}. edit a host`);
+            console.log(`${i}. Add a new host`);
+            console.log(`${i + 1}. Edit a host`);
             console.log("0. Exit");
-            selection = parseInt(await input.text("Enter your choice: ", { default: 1 }));
-            if (selection === 0) {
-                console.log("Exiting...");
-                break;
-            }
-            if (selection === i) {
-                await this.add_new_host();
-                continue;
-            }
-            if (selection === i + 1) {
-                await this.edit_hosts();
-                continue;
-            }
+
+            selection = parseInt(await input.text("Enter your choice: ", { default: config.data.last_used }));
+
             if (selection > 0 && selection < i) {
+                config.data.last_used = selection;
+                config.save();
                 const key = Object.keys(config.data.hosts)[selection - 1];
                 if (verbose) {
                     console.debug("Selected host: ", key);
@@ -95,8 +89,18 @@ let ssh3 = {
                 }
                 this.run(key);
                 break;
+            } else if (selection === 0) {
+                console.log("Exiting...");
+                break;
+            } else if (selection === i) {
+                await this.add_new_host();
+                continue;
+            } else if (selection === i + 1) {
+                await this.edit_hosts();
+                continue;
             } else {
                 console.log("Invalid selection");
+                selection = -1;
             }
         }
     },
