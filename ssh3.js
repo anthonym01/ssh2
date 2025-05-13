@@ -6,12 +6,11 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const input = require('input');
 const Table = require('easy-table');
+const path = require('path');
 
 let verbose = false;
 // get any arguments passed to the script
 const args = process.argv.slice(2);
-
-
 
 let config = {
     data: {
@@ -22,14 +21,14 @@ let config = {
         if (verbose) {
             console.debug("Saving config");
         }
-        fs.writeFileSync('./config.json', JSON.stringify(this.data));
+        fs.writeFileSync(path.join(__dirname, './config.json'), JSON.stringify(this.data));
     },
     load: function () {
         if (verbose) {
             console.debug("Loading config");
         }
         try {
-            this.data = JSON.parse(fs.readFileSync('./config.json', 'utf8'));
+            this.data = JSON.parse(fs.readFileSync(path.join(__dirname, './config.json'), 'utf8'));
         } catch (err) {
             console.error('Error reading config file:', err);
             if (verbose) {
@@ -48,7 +47,8 @@ let ssh3 = {
         console.log("Options:");
         console.log("-h, --help\tShow this help message");
         console.log("-v, --verbose\tEnable verbose output");
-        console.log("-o, --output\tgive configuration file path");
+        console.log("-i, --input\tInput file to load hosts from");
+        console.log("-o, --output\tOutput file to save hosts to");
     },
     startup: async function () {
         let selection = -1;
@@ -146,15 +146,49 @@ let ssh3 = {
 
 
 if (args.length > 0) {
-    for (const arg of args) {
-        console.log(`${arg}`);
-        if (arg === "-h" || arg === "--help") {//show help menu
-            ssh3.help();
-            process.exit(0);
+    try {
+        for (const arg of args) {
+            switch (arg) {
+                case "-h":
+                case "--help":
+                    ssh3.help();
+                    process.exit(0);
+                    break;
+                case "-v":
+                case "--verbose":
+                    verbose = true;
+                    break;
+                case "-i":
+                case "--input":
+                    const input = args[args.indexOf(arg) + 1];
+                    if (input) {
+                        config.data.hosts = JSON.parse(fs.readFileSync(input, 'utf8'));
+                    } else {
+                        console.error("No input file specified");
+                        process.exit(1);
+                    }
+                    break;
+                case "-o":
+                case "--output":
+                    const output = args[args.indexOf(arg) + 1];
+                    if (output) {
+                        fs.writeFileSync(path.join(output, '.json'), JSON.stringify(config.data));
+                    } else {
+                        console.error("No output file specified");
+                        process.exit(1);
+                    }
+                    break;
+                default:
+                    console.error(`Unknown argument: ${arg}`);
+                    ssh3.help();
+                    process.exit(1);
+                    break;
+            }
         }
-        if (arg === "-v" || arg === "--verbose") {//verbosity
-            verbose = true;
-        }
+    } catch (err) {
+        console.log('Could not parse arguments:', err);
+        ssh3.help();
+        process.exit(1);
     }
 }
 ssh3.startup();
