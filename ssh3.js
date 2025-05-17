@@ -4,9 +4,27 @@
 //
 const { spawn } = require('child_process');
 const fs = require('fs');
-const input = require('input');
+//const input = require('input');
 const Table = require('easy-table');
 const path = require('path');
+const { default: inquirer } = require('inquirer');
+const prompt = inquirer.createPromptModule();
+
+prompt({
+    question: "name",
+    name: 'answer',
+    message: "What is your name?",
+    type: 'list',
+    choices: [
+        //value name
+        { value: 1, name: '1) Enter your name ' },
+        { value: 2, name: '2) or dont its up to you' },
+        { value: 3, name: '3) or you can just press enter' }
+    ],
+    default: 2,
+}).then(answers => {
+    console.log(answers);
+});
 
 let verbose = false;
 // get any arguments passed to the script
@@ -191,5 +209,5 @@ if (args.length > 0) {
         process.exit(1);
     }
 }
-ssh3.startup();
+//ssh3.startup();
 //const child = spawn('ssh',[`root@192.168.0.99`,`-J`,`samuel@samuelm.us.to`], { stdio: 'inherit' });
